@@ -1,0 +1,29 @@
+name: Upload Extension
+
+on:
+  workflow_dispatch:
+    inputs:
+      file-content:
+        description: 'Base64-encoded content of the extension file'
+        required: true
+      file-name:
+        description: 'Name of the extension (e.g., MyExtension_v1.js)'
+        required: true
+
+jobs:
+  upload:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload extension
+        run: |
+          echo "${{ github.event.inputs.file-content }}" | base64 -d > extensions/${{ github.event.inputs.file-name }}
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git add extensions/${{ github.event.inputs.file-name }}
+          git commit -m "Upload new extension: ${{ github.event.inputs.file-name }}"
+          git push

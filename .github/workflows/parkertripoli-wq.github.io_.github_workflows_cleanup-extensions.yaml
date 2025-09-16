@@ -1,0 +1,23 @@
+name: Cleanup Old Extensions
+
+on:
+  schedule:
+    - cron: '0 0 * * 0'  # Runs every Sunday at midnight UTC (8 PM PDT Saturday)
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Delete old extensions
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          find extensions -type f -name "*.js" -mtime +30 -exec git rm {} \;
+          find archive -type f -name "*.js" -mtime +90 -exec git rm {} \;
+          git commit -m "Remove extensions older than 30 days from extensions/, 90 days from archive/" || echo "No changes to commit"
+          git push
